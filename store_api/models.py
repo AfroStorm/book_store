@@ -5,20 +5,36 @@ from django.contrib.auth.models import User
 
 
 class Tag(models.Model):
+    '''
+    Highlights the product with different tags.
+    '''
     caption = models.CharField(max_length=20)
 
     def __str__(self) -> str:
+        '''
+        Displays the object as a string.
+        '''
         return self.caption
 
 
 class Category(models.Model):
+    '''
+    Indicates the category in which the product fits in.
+    '''
     name = models.CharField(max_length=50)
 
     def __str__(self) -> str:
+        '''
+        Displays the object as a string.
+        '''
         return self.name
 
 
 class Product(models.Model):
+    '''
+    The product in the online shop has different properties depending on its
+    category. Some properties are required, others are optional.
+    '''
     category = models.ForeignKey(
         Category,
         on_delete=models.CASCADE
@@ -43,14 +59,24 @@ class Product(models.Model):
     author = models.CharField(max_length=50)
 
     def __str__(self) -> str:
+        '''
+        Displays the object as a string.
+        '''
         return f'Category: {self.category}\n Product name{self.name}'
 
 
 class Profile(models.Model):
+    '''
+    Profile that shows additional information about the customer.
+    Also contains a personal purchase history and a wishlist of prducts.
+    '''
     address = models.CharField(max_length=255)
+    last_login = models.DateField(auto_now_add=True, null=True)
+    date_joined = models.DateField(auto_now=True, null=True)
     customer = models.OneToOneField(
         User,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name='profile'
     )
     purchase_history = models.ManyToManyField(
         Product,
@@ -62,4 +88,7 @@ class Profile(models.Model):
     )
 
     def __str__(self) -> str:
+        '''
+        Displays the object as a string
+        '''
         return f'{self.customer.username}'
