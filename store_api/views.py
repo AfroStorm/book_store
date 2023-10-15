@@ -4,6 +4,8 @@ from store_api import serializers
 from store_api import models
 from django.contrib.auth.models import User
 from store_api.permissions import ReadOnly
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.settings import api_settings
 # Create your views here.
 
 
@@ -53,3 +55,11 @@ class ProfileView(ModelViewSet):
 
     queryset = models.Profile.objects.all()
     serializer_class = serializers.ProfileSerializer
+
+
+class LoginView(ObtainAuthToken):
+    '''
+    Handles creating user authentication tokens
+    '''
+
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES

@@ -11,5 +11,6 @@ router.register('users', views.UserView)
 router.register('profiles', views.ProfileView)
 
 urlpatterns = [
+    path('login/', views.LoginView.as_view()),
     path('', include(router.urls))
 ]
