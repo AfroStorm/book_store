@@ -5,6 +5,7 @@ from store_api import views
 
 router = DefaultRouter()
 router.register('tags', views.TagView)
+router.register('categories', views.CategoryView)
 
 urlpatterns = [
     path('', include(router.urls))

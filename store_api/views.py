@@ -12,3 +12,12 @@ class TagView(ModelViewSet):
 
     queryset = models.Tag.objects.all()
     serializer_class = serializers.TagSerializer
+
+
+class CategoryView(ModelViewSet):
+    '''
+    Displays the category in a browsable api
+    '''
+
+    queryset = models.Category.objects.all()
+    serializer_class = serializers.CategorySerializer

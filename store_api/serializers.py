@@ -13,3 +13,15 @@ class TagSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'caption': {'read_only': True}
         }
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    '''
+    Serializes the category models.
+    '''
+    class Meta:
+        model = models.Category
+        fields = ['name']
+        extra_kwargs = {
+            'name': {'read_only': True}
+        }
