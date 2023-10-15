@@ -58,8 +58,13 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            'id', 'username', 'email', 'first_name', 'last_name', 'profile'
+            'id', 'username', 'password', 'email', 'first_name', 'last_name',
+            'profile'
+
         ]
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -75,5 +80,6 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
         extra_kwargs = {
             'purchase_history': {'read_only': True},
-            'customer': {'read_only': True}
+            'wishlist': {'read_only': True},
+            'customer': {'read_only': True},
         }

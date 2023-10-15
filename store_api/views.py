@@ -3,9 +3,10 @@ from rest_framework.viewsets import ModelViewSet
 from store_api import serializers
 from store_api import models
 from django.contrib.auth.models import User
-from store_api.permissions import ReadOnly
+from store_api.permissions import IsListOnly, IoRoProfile, IoRoUser
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 # Create your views here.
 
 
@@ -16,7 +17,7 @@ class TagView(ModelViewSet):
 
     queryset = models.Tag.objects.all()
     serializer_class = serializers.TagSerializer
-    permission_classes = [ReadOnly,]
+    permission_classes = [IsListOnly,]
 
 
 class CategoryView(ModelViewSet):
@@ -26,7 +27,7 @@ class CategoryView(ModelViewSet):
 
     queryset = models.Category.objects.all()
     serializer_class = serializers.CategorySerializer
-    permission_classes = [ReadOnly,]
+    permission_classes = [IsListOnly,]
 
 
 class ProductView(ModelViewSet):
@@ -36,7 +37,7 @@ class ProductView(ModelViewSet):
 
     queryset = models.Product.objects.all()
     serializer_class = serializers.ProductSerializer
-    permission_classes = [ReadOnly,]
+    permission_classes = [IsListOnly,]
 
 
 class UserView(ModelViewSet):
@@ -46,6 +47,7 @@ class UserView(ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
+    permission_classes = [IoRoUser,]
 
 
 class ProfileView(ModelViewSet):
@@ -55,6 +57,7 @@ class ProfileView(ModelViewSet):
 
     queryset = models.Profile.objects.all()
     serializer_class = serializers.ProfileSerializer
+    permission_classes = [IsListOnly, IoRoProfile]
 
 
 class LoginView(ObtainAuthToken):
