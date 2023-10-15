@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from store_api import serializers
 from store_api import models
+from django.contrib.auth.models import User
 # Create your views here.
 
 
@@ -30,3 +31,21 @@ class ProductView(ModelViewSet):
 
     queryset = models.Product.objects.all()
     serializer_class = serializers.ProductSerializer
+
+
+class UserView(ModelViewSet):
+    '''
+    Displays the user in a browsable api
+    '''
+
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+
+
+class ProfileView(ModelViewSet):
+    '''
+    Displays the profile in a browsable api
+    '''
+
+    queryset = models.Profile.objects.all()
+    serializer_class = serializers.ProfileSerializer

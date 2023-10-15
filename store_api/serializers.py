@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from store_api import models
+from django.contrib.auth.models import User
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -46,3 +47,33 @@ class ProductSerializer(serializers.ModelSerializer):
         model = models.Product
         fields = '__all__'
         read_only_fields = ('__all__',)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    '''
+    Serializes the user 
+    '''
+    profile = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'username', 'email', 'first_name', 'last_name', 'profile'
+        ]
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    '''
+    Serializes the profile
+    '''
+
+    class Meta:
+        model = models.Profile
+        fields = [
+            'id', 'address', 'last_login', 'date_joined', 'customer',
+            'purchase_history', 'wishlist'
+        ]
+        extra_kwargs = {
+            'purchase_history': {'read_only': True},
+            'customer': {'read_only': True}
+        }
