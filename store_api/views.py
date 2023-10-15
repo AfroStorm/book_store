@@ -3,6 +3,7 @@ from rest_framework.viewsets import ModelViewSet
 from store_api import serializers
 from store_api import models
 from django.contrib.auth.models import User
+from store_api.permissions import ReadOnly
 # Create your views here.
 
 
@@ -13,6 +14,7 @@ class TagView(ModelViewSet):
 
     queryset = models.Tag.objects.all()
     serializer_class = serializers.TagSerializer
+    permission_classes = [ReadOnly,]
 
 
 class CategoryView(ModelViewSet):
@@ -22,6 +24,7 @@ class CategoryView(ModelViewSet):
 
     queryset = models.Category.objects.all()
     serializer_class = serializers.CategorySerializer
+    permission_classes = [ReadOnly,]
 
 
 class ProductView(ModelViewSet):
@@ -31,6 +34,7 @@ class ProductView(ModelViewSet):
 
     queryset = models.Product.objects.all()
     serializer_class = serializers.ProductSerializer
+    permission_classes = [ReadOnly,]
 
 
 class UserView(ModelViewSet):
