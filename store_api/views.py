@@ -21,3 +21,12 @@ class CategoryView(ModelViewSet):
 
     queryset = models.Category.objects.all()
     serializer_class = serializers.CategorySerializer
+
+
+class ProductView(ModelViewSet):
+    '''
+    Displays the product in a browsable api
+    '''
+
+    queryset = models.Product.objects.all()
+    serializer_class = serializers.ProductSerializer

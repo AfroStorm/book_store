@@ -25,3 +25,24 @@ class CategorySerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'name': {'read_only': True}
         }
+
+
+class ProductSerializer(serializers.ModelSerializer):
+    '''
+    Serializes the product model
+    '''
+    tags = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='caption'
+    )
+    category = serializers.SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='name'
+    )
+
+    class Meta:
+        model = models.Product
+        fields = '__all__'
+        read_only_fields = ('__all__',)
