@@ -38,7 +38,6 @@ class ProductSerializer(serializers.ModelSerializer):
         slug_field='caption'
     )
     category = serializers.SlugRelatedField(
-        many=True,
         read_only=True,
         slug_field='name'
     )

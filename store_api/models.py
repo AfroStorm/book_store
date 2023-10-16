@@ -49,20 +49,20 @@ class Product(models.Model):
     description = models.TextField()
     tags = models.ManyToManyField(Tag)
 
-    lenght = models.FloatField(null=True)
-    height = models.FloatField(null=True)
-    width = models.FloatField(null=True)
-    weight = models.FloatField(null=True)
-    rating = models.IntegerField(null=True)
-    color = models.CharField(max_length=50, null=True)
-    publishing_date = models.DateField(null=True)
-    author = models.CharField(max_length=50)
+    lenght = models.FloatField(null=True, blank=True)
+    height = models.FloatField(null=True, blank=True)
+    width = models.FloatField(null=True, blank=True)
+    weight = models.FloatField(null=True, blank=True)
+    rating = models.IntegerField(null=True, blank=True)
+    color = models.CharField(max_length=50, null=True, blank=True)
+    publishing_date = models.DateField(null=True, blank=True)
+    author = models.CharField(max_length=50, null=True, blank=True)
 
     def __str__(self) -> str:
         '''
         Displays the object as a string.
         '''
-        return f'Category: {self.category}\n Product name{self.name}'
+        return f'Category: {self.category}\n/ Name: {self.name}'
 
 
 class Profile(models.Model):

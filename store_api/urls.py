@@ -12,5 +12,7 @@ router.register('profiles', views.ProfileView)
 
 urlpatterns = [
     path('login/', views.LoginView.as_view()),
+    path('add-to-wishlist/profiles/<int:pk>/',
+         views.AddToWishlistView.as_view()),
     path('', include(router.urls))
 ]
