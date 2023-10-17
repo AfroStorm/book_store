@@ -68,9 +68,11 @@ class ProfileView(ModelViewSet):
     permission_classes = [IsListOnly, IoRoProfile]
 
 
-class AddToWishlistView(generics.UpdateAPIView):
+class UpdateWishlistView(generics.UpdateAPIView):
     '''
-    Adds a product to the profile wishlist
+    Adds or removes a product from the profile wishlist. Requires a
+    key value pair of "action": "remove" or "add" and "product_id": "pk"
+    in the request body
     '''
     queryset = models.Profile.objects.all()
     authentication_classes = (TokenAuthentication,)
@@ -79,21 +81,39 @@ class AddToWishlistView(generics.UpdateAPIView):
 
     def perform_update(self, serializer):
         '''
-        Gets product id from the request body and checks if the product exists.
-        Then gets the user profile from authenticated user and adds the product to the wishlist.
+        Checks if the product should be added or removed
+        from wishlist
         '''
-
         product_id = self.request.data.get('product_id')
-        try:
-            product = models.Product.objects.get(pk=product_id)
-        except models.Product.DoesNotExist:
-            return Response({'detail': 'Product not found!'},
-                            status=status.HTTP_404_NOT_FOUND)
-
         profile = self.get_object()
-        profile.wishlist.add(product)
+        product = self.does_exist(product_id)
+        action = self.request.data.get('action')
+
+        if action == 'remove':
+            profile.wishlist.remove(product)
+
+        elif action == 'add':
+            profile.wishlist.add(product)
+
+        else:
+            return Response(
+                {'detail': '"action" is neither "add" nor "remove" (kwarg)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         wishlist = profile.wishlist.all()
         serializer.save(wishlist=wishlist)
+
+    def does_exist(self, product_id):
+        '''
+        Checks if the product is in database or sends http404 product not
+        found
+        '''
+        try:
+            product = models.Product.objects.get(pk=product_id)
+            return product
+        except models.Product.DoesNotExist:
+            raise Http404('Product not found')
 
 
 class LoginView(ObtainAuthToken):
