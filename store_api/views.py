@@ -116,6 +116,45 @@ class UpdateWishlistView(generics.UpdateAPIView):
             raise Http404('Product not found')
 
 
+
+
+class AddToPurchaseHistoryView(generics.UpdateAPIView):
+    '''
+    Adds to the profile purchase history. Expects a list
+    in the request body
+    '''
+    queryset = models.Profile.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IoRoProfile]
+    serializer_class = serializers.ProfileSerializer
+
+    def perform_update(self, serializer):
+        '''
+        Adds the incoming products to the purchase history
+        '''
+
+        profile = self.get_object()
+        product_list = self.request.data.get('product_list')
+
+        for product_id in product_list:
+            product = self.does_exist(product_id)
+            profile.purchase_history.add(product)
+
+        purchase_history = profile.purchase_history.all()
+        serializer.save(purchase_history=purchase_history)
+
+    def does_exist(self, product_id):
+        '''
+        Checks if the product is in database or sends http404 product not
+        found
+        '''
+        try:
+            product = models.Product.objects.get(pk=product_id)
+            return product
+        except models.Product.DoesNotExist:
+            raise Http404(f'Product with id:{product_id} not found')
+
+
 class LoginView(ObtainAuthToken):
     '''
     Handles creating user authentication tokens

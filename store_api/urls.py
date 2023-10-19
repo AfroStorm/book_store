@@ -14,5 +14,7 @@ urlpatterns = [
     path('login/', views.LoginView.as_view()),
     path('update-wishlist/profiles/<int:pk>/',
          views.UpdateWishlistView.as_view()),
+    path('update-purchase-history/profiles/<int:pk>/',
+         views.AddToPurchaseHistoryView.as_view()),
     path('', include(router.urls))
 ]

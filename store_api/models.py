@@ -71,8 +71,8 @@ class Profile(models.Model):
     Also contains a personal purchase history and a wishlist of prducts.
     '''
     address = models.CharField(max_length=255)
-    last_login = models.DateField(auto_now_add=True, null=True)
-    date_joined = models.DateField(auto_now=True, null=True)
+    last_login = models.DateField(null=True)
+    date_joined = models.DateField(null=True)
     customer = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
