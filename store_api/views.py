@@ -116,8 +116,6 @@ class UpdateWishlistView(generics.UpdateAPIView):
             raise Http404('Product not found')
 
 
-
-
 class AddToPurchaseHistoryView(generics.UpdateAPIView):
     '''
     Adds to the profile purchase history. Expects a list

@@ -92,3 +92,19 @@ class Profile(models.Model):
         Displays the object as a string
         '''
         return f'{self.customer.username}'
+
+
+class PendingOrder(models.Model):
+    '''
+    Pending order of a customer. Waits for payment confirmation.
+    '''
+    profile = models.ForeignKey(
+        Profile,
+        related_name='pending_orders'
+    )
+    products = models.ManyToManyField(
+        Product,
+        related_name='products'
+    )
+    date_of_ordering = models.DateTimeField(auto_now_add=True)
+    is_confirmed = models.BooleanField(default=False)
