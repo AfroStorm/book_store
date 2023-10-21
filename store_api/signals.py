@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from store_api.models import Profile, PendingOrder
+from store_api.models import Profile, Order
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from celery import shared_task
@@ -23,32 +23,18 @@ def save_profile(sender, instance, **kwargs):
     instance.profile.save()
 
 
-@receiver(post_save, sender=PendingOrder)
-def is_payed(instance, **kwargs):
-    '''
-    Checks if the payment is confirmed. Adds products to purchase history.
-    Removes products from pending orders.
-    '''
-    if instance.is_confirmed:
-        products_list = instance.products.all()
-        profile = instance.profile
-
-        profile.purchase_history.add(*products_list)
-        profile.pending_orders.remove(*products_list)
-
-
 @shared_task
 def check_payment_confirmations():
     '''
     Checks the pending payments
     '''
 
-    unprocessed_payments = PendingOrder.objects.filter(is_confirmed=False)
+    unprocessed_payments = Order.objects.filter(is_confirmed=False)
 
-    for payment in unprocessed_payments:
+    for order in unprocessed_payments:
         sleep(5)
-        # Simulate checking for payment confirmation (you would use the
-        # actual payment gateway API)
-        # If payment is confirmed, set is_confirmed=True
-        payment.is_confirmed = True
-        payment.save()
+        # Simulate checking for order confirmation (you would use the
+        # actual order gateway API)
+        # If order is confirmed, set is_confirmed=True
+        order.is_confirmed = True
+        order.save()

@@ -9,7 +9,7 @@ router.register('categories', views.CategoryView)
 router.register('products', views.ProductView)
 router.register('users', views.UserView)
 router.register('profiles', views.ProfileView)
-router.register('pending-orders', views.PendingOrderVIew)
+router.register('orders', views.OrderVIew)
 
 urlpatterns = [
     path('login/', views.LoginView.as_view()),

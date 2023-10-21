@@ -70,17 +70,15 @@ class Profile(models.Model):
     Profile that shows additional information about the customer.
     Also contains a personal purchase history and a wishlist of prducts.
     '''
+
     address = models.CharField(max_length=255)
     last_login = models.DateField(null=True)
     date_joined = models.DateField(null=True)
+
     customer = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
         related_name='profile'
-    )
-    purchase_history = models.ManyToManyField(
-        Product,
-        related_name='purchase_history'
     )
     wishlist = models.ManyToManyField(
         Product,
@@ -94,7 +92,7 @@ class Profile(models.Model):
         return f'{self.customer.username}'
 
 
-class PendingOrder(models.Model):
+class Order(models.Model):
     '''
     Pending order of a customer. Waits for payment confirmation.
     '''
@@ -102,7 +100,7 @@ class PendingOrder(models.Model):
     profile = models.ForeignKey(
         Profile,
         on_delete=models.CASCADE,
-        related_name='pending_orders'
+        related_name='orders'
     )
     products = models.ManyToManyField(
         Product,

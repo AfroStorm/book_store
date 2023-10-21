@@ -4,7 +4,7 @@ from store_api import serializers
 from store_api import models
 from django.contrib.auth.models import User
 from store_api.permissions import IsListOnly, IoRoProfile, IoRoUser,\
-    IoRoPendingOrder
+    IoRoOrder
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import generics
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -69,17 +69,21 @@ class ProfileView(ModelViewSet):
     permission_classes = [IsListOnly, IoRoProfile]
 
 
-class PendingOrderVIew(ModelViewSet):
+class OrderVIew(ModelViewSet):
     '''
-    Displays the PendingOrder in a browsable api
+    Displays the Order in a browsable api
     '''
 
-    queryset = models.PendingOrder.objects.all()
-    serializer_class = serializers.PendingOrderSerializer
+    queryset = models.Order.objects.all()
+    serializer_class = serializers.OrderSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = [IoRoPendingOrder, IsAuthenticatedOrReadOnly,]
+    permission_classes = [IoRoOrder, IsAuthenticatedOrReadOnly,]
 
     def perform_create(self, serializer):
+        '''
+        Checks if request is POST to associate the profile field of the 
+        Order with the profile of the authenticated user
+        '''
         if self.request.method == 'POST':
             serializer.validated_data['profile'] = self.request.user.profile
 

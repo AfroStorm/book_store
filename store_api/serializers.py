@@ -75,26 +75,27 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = models.Profile
         fields = [
             'id', 'address', 'last_login', 'date_joined', 'customer',
-            'purchase_history', 'wishlist'
+            'wishlist', 'orders'
         ]
         extra_kwargs = {
-            'purchase_history': {'read_only': True},
+            'orders': {'read_only': True},
             'wishlist': {'read_only': True},
             'customer': {'read_only': True},
         }
 
 
-class PendingOrderSerializer(serializers.ModelSerializer):
+class OrderSerializer(serializers.ModelSerializer):
     '''
     Serializes the PendingOrder model
     '''
+
     products = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=models.Product.objects.all()
     )
 
     class Meta:
-        model = models.PendingOrder
+        model = models.Order
         fields = [
             'id', 'products', 'profile', 'date_of_ordering', 'is_confirmed'
         ]

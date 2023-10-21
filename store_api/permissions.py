@@ -62,7 +62,7 @@ class IoRoProfile(permissions.BasePermission):
         return request.user == obj.customer
 
 
-class IoRoPendingOrder(permissions.BasePermission):
+class IoRoOrder(permissions.BasePermission):
     '''
     IsOwnerOrReadOnly on PendingOrder (has_object_permission)
     '''
@@ -74,4 +74,4 @@ class IoRoPendingOrder(permissions.BasePermission):
         if request.method == permissions.SAFE_METHODS:
             return True
 
-        return request.user == obj.profile
+        return request.user.profile == obj.profile
