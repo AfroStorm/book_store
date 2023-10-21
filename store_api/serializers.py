@@ -82,3 +82,20 @@ class ProfileSerializer(serializers.ModelSerializer):
             'wishlist': {'read_only': True},
             'customer': {'read_only': True},
         }
+
+
+class PendingOrderSerializer(serializers.ModelSerializer):
+    '''
+    Serializes the PendingOrder model
+    '''
+    products = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=models.Product.objects.all()
+    )
+
+    class Meta:
+        model = models.PendingOrder
+        fields = [
+            'id', 'products', 'profile', 'date_of_ordering', 'is_confirmed'
+        ]
+        read_only_fields = ('profile', 'is_confirmed',)

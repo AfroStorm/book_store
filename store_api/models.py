@@ -98,8 +98,10 @@ class PendingOrder(models.Model):
     '''
     Pending order of a customer. Waits for payment confirmation.
     '''
+
     profile = models.ForeignKey(
         Profile,
+        on_delete=models.CASCADE,
         related_name='pending_orders'
     )
     products = models.ManyToManyField(

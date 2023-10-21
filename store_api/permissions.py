@@ -41,4 +41,37 @@ class IoRoProfile(permissions.BasePermission):
         if request.method == permissions.SAFE_METHODS:
             return True
 
+        elif view.action == 'CREATE':
+            return True
+
         return request.user == obj.customer
+
+
+class IoRoProfile(permissions.BasePermission):
+    '''
+    IsOwnerOrReadOnly on profile (has_object_permission)
+    '''
+
+    def has_object_permission(self, request, view, obj):
+        '''
+        Checks if the request user is the owner of the profile
+        '''
+        if request.method == permissions.SAFE_METHODS:
+            return True
+
+        return request.user == obj.customer
+
+
+class IoRoPendingOrder(permissions.BasePermission):
+    '''
+    IsOwnerOrReadOnly on PendingOrder (has_object_permission)
+    '''
+
+    def has_object_permission(self, request, view, obj):
+        '''
+        Checks if the request user is the owner of the profile
+        '''
+        if request.method == permissions.SAFE_METHODS:
+            return True
+
+        return request.user == obj.profile

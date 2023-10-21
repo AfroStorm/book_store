@@ -1,10 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from rest_framework.viewsets import ModelViewSet
 from store_api import serializers
 from store_api import models
 from django.contrib.auth.models import User
-from store_api.permissions import IsListOnly, IoRoProfile, IoRoUser
-from rest_framework.permissions import IsAuthenticated
+from store_api.permissions import IsListOnly, IoRoProfile, IoRoUser,\
+    IoRoPendingOrder
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import generics
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authentication import TokenAuthentication
@@ -68,6 +69,23 @@ class ProfileView(ModelViewSet):
     permission_classes = [IsListOnly, IoRoProfile]
 
 
+class PendingOrderVIew(ModelViewSet):
+    '''
+    Displays the PendingOrder in a browsable api
+    '''
+
+    queryset = models.PendingOrder.objects.all()
+    serializer_class = serializers.PendingOrderSerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IoRoPendingOrder, IsAuthenticatedOrReadOnly,]
+
+    def perform_create(self, serializer):
+        if self.request.method == 'POST':
+            serializer.validated_data['profile'] = self.request.user.profile
+
+        return super().perform_create(serializer)
+
+
 class UpdateWishlistView(generics.UpdateAPIView):
     '''
     Adds or removes a product from the profile wishlist. Requires a
@@ -86,7 +104,7 @@ class UpdateWishlistView(generics.UpdateAPIView):
         '''
         product_id = self.request.data.get('product_id')
         profile = self.get_object()
-        product = self.does_exist(product_id)
+        product = get_object_or_404(models.Product, pk=product_id)
         action = self.request.data.get('action')
 
         if action == 'remove':
@@ -103,54 +121,6 @@ class UpdateWishlistView(generics.UpdateAPIView):
 
         wishlist = profile.wishlist.all()
         serializer.save(wishlist=wishlist)
-
-    def does_exist(self, product_id):
-        '''
-        Checks if the product is in database or sends http404 product not
-        found
-        '''
-        try:
-            product = models.Product.objects.get(pk=product_id)
-            return product
-        except models.Product.DoesNotExist:
-            raise Http404('Product not found')
-
-
-class AddToPurchaseHistoryView(generics.UpdateAPIView):
-    '''
-    Adds to the profile purchase history. Expects a list
-    in the request body
-    '''
-    queryset = models.Profile.objects.all()
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = [IoRoProfile]
-    serializer_class = serializers.ProfileSerializer
-
-    def perform_update(self, serializer):
-        '''
-        Adds the incoming products to the purchase history
-        '''
-
-        profile = self.get_object()
-        product_list = self.request.data.get('product_list')
-
-        for product_id in product_list:
-            product = self.does_exist(product_id)
-            profile.purchase_history.add(product)
-
-        purchase_history = profile.purchase_history.all()
-        serializer.save(purchase_history=purchase_history)
-
-    def does_exist(self, product_id):
-        '''
-        Checks if the product is in database or sends http404 product not
-        found
-        '''
-        try:
-            product = models.Product.objects.get(pk=product_id)
-            return product
-        except models.Product.DoesNotExist:
-            raise Http404(f'Product with id:{product_id} not found')
 
 
 class LoginView(ObtainAuthToken):
