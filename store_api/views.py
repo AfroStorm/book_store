@@ -80,8 +80,8 @@ class ProfileView(ModelViewSet):
         product_id = self.request.data.get('product_id')
         product = get_object_or_404(models.Product, pk=product_id)
         profile = self.get_object()
-
         action = self.request.data.get('action')
+
         if action == 'add':
             profile.wishlist.add(product)
         elif action == 'remove':

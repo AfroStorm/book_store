@@ -42,6 +42,11 @@ INSTALLED_APPS = [
     'store_api'
 ]
 
+AUTHENTICATION_BACKENDS = [
+    'store_api.backends.CustomModelBackend',
+    'django.contrib.auth.backends.ModelBackend',  # Ensure ModelBackend is included
+]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
