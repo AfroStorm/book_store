@@ -13,7 +13,5 @@ router.register('orders', views.OrderVIew)
 
 urlpatterns = [
     path('login/', views.LoginView.as_view()),
-    path('update-wishlist/profiles/<int:pk>/',
-         views.UpdateWishlistView.as_view()),
     path('', include(router.urls))
 ]
