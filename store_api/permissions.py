@@ -1,77 +1,45 @@
 from rest_framework import permissions
+from store_api import views
 
 
-class IsListOnly(permissions.BasePermission):
-    """
-    Only allows read on a list (has_permission)
-    """
+class IsOwner(permissions.BasePermission):
+    '''
+    Checks if the request user is the authenticated owner. obj.customer
+    (user).
+    '''
+
+    def has_object_permission(self, request, view, obj):
+        '''
+        Checks for the obj.customer (user).
+        '''
+
+        return (
+            request.user and request.user.is_authenticated and
+            request.user == obj.customer
+        )
+
+
+class IsUser(permissions.BasePermission):
+    '''
+    Checks if the request user is the authenticated owner of the user
+    intsance.
+    '''
+
+    def has_object_permission(self, request, view, obj):
+
+        return (
+            request.user and request.user.is_authenticated and
+            request.user == obj
+        )
+
+
+class IsReadOnly(permissions.BasePermission):
+    '''
+    Only allows readonly methods.
+    '''
 
     def has_permission(self, request, view):
-        """
-        Checks if view.action is create
-        """
-
-        return view.action != 'create'
-
-
-class IoRoUser(permissions.BasePermission):
-    '''
-    IsOwnerOrReadOnly on user (has_object_permission)
-    '''
+        return request.method in permissions.SAFE_METHODS
 
     def has_object_permission(self, request, view, obj):
-        '''
-        Checks if the request user is the same as the user object
-        '''
-        if request.method == permissions.SAFE_METHODS:
-            return True
-
-        return request.user.id == obj.id
-
-
-class IoRoProfile(permissions.BasePermission):
-    '''
-    IsOwnerOrReadOnly on profile (has_object_permission)
-    '''
-
-    def has_object_permission(self, request, view, obj):
-        '''
-        Checks if the request user is the owner of the profile
-        '''
-        if request.method == permissions.SAFE_METHODS:
-            return True
-
-        elif view.action == 'CREATE':
-            return True
-
-        return request.user == obj.customer
-
-
-class IoRoProfile(permissions.BasePermission):
-    '''
-    IsOwnerOrReadOnly on profile (has_object_permission)
-    '''
-
-    def has_object_permission(self, request, view, obj):
-        '''
-        Checks if the request user is the owner of the profile
-        '''
-        if request.method == permissions.SAFE_METHODS:
-            return True
-
-        return request.user == obj.customer
-
-
-class IoRoOrder(permissions.BasePermission):
-    '''
-    IsOwnerOrReadOnly on PendingOrder (has_object_permission)
-    '''
-
-    def has_object_permission(self, request, view, obj):
-        '''
-        Checks if the request user is the owner of the profile
-        '''
-        if request.method == permissions.SAFE_METHODS:
-            return True
-
-        return request.user.profile == obj.profile
+        return request.method in permissions.SAFE_METHODS

@@ -3,17 +3,16 @@ from rest_framework.viewsets import ModelViewSet
 from store_api import serializers
 from rest_framework.decorators import action
 from store_api import models
+from rest_framework import generics, mixins
 from django.contrib.auth.models import User
-from store_api.permissions import IsListOnly, IoRoProfile, IoRoUser,\
-    IoRoOrder
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework import generics
+from rest_framework.permissions import IsAdminUser, IsAuthenticated,\
+    IsAuthenticatedOrReadOnly
+from store_api.permissions import IsOwner, IsReadOnly, IsUser
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.settings import api_settings
 from rest_framework.response import Response
 from rest_framework import status
-from django.http import Http404
 
 # Create your views here.
 
@@ -25,7 +24,8 @@ class TagView(ModelViewSet):
 
     queryset = models.Tag.objects.all()
     serializer_class = serializers.TagSerializer
-    permission_classes = [IsListOnly,]
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAdminUser | IsReadOnly]
 
 
 class CategoryView(ModelViewSet):
@@ -35,7 +35,8 @@ class CategoryView(ModelViewSet):
 
     queryset = models.Category.objects.all()
     serializer_class = serializers.CategorySerializer
-    permission_classes = [IsListOnly,]
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAdminUser | IsReadOnly]
 
 
 class ProductView(ModelViewSet):
@@ -45,7 +46,46 @@ class ProductView(ModelViewSet):
 
     queryset = models.Product.objects.all()
     serializer_class = serializers.ProductSerializer
-    permission_classes = [IsListOnly,]
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAdminUser | IsReadOnly]
+
+
+class ProductReviewHistory(ModelViewSet):
+    '''
+    Displays the product review history in a browsable api
+    '''
+
+    queryset = models.ProductReviewHistory.objects.all()
+    serializer_class = serializers.ProductReviewHistorySerializer
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = [IsAdminUser | IsReadOnly]
+
+
+class CustomerReviewView(ModelViewSet):
+    '''
+    Displays the product in a browsable api
+    '''
+
+    queryset = models.CustomerReview.objects.all()
+    serializer_class = serializers.CustomerReviewSerializer
+    authentication_classes = (TokenAuthentication,)
+
+    def get_permissions(self):
+        '''
+        Implements permission classes for different view actions.
+        '''
+        if self.action == 'create':
+            permission_classes = [IsAdminUser | IsAuthenticated]
+
+        elif self.action == 'update' or\
+                self.action == 'partial_update' or\
+                self.action == 'destroy':
+            permission_classes = [IsAdminUser | IsOwner]
+
+        else:
+            permission_classes = []
+
+        return [permission() for permission in permission_classes]
 
 
 class UserView(ModelViewSet):
@@ -56,39 +96,68 @@ class UserView(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = [IoRoUser,]
+
+    def get_permissions(self):
+        '''
+        Implements permission classes for different view actions.
+        '''
+        if self.action == 'update' or\
+                self.action == 'partial_update' or\
+                self.action == 'destroy':
+            permission_classes = [IsAdminUser | IsUser]
+
+        else:
+            permission_classes = []
+
+        return [permission() for permission in permission_classes]
 
 
 class ProfileView(ModelViewSet):
-    '''
-    Displays the profile in a browsable api
+    ''' 
+    Displays the profile in a browsable api.
     '''
 
     queryset = models.Profile.objects.all()
     serializer_class = serializers.ProfileSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = [IsListOnly, IoRoProfile]
+
+    def get_permissions(self):
+        '''
+        Implements permission classes for different view actions.
+        '''
+        if self.action == 'create':
+            permission_classes = [IsAdminUser,]
+
+        elif self.action == 'update' or\
+                self.action == 'partial_update' or\
+                self.action == 'destroy':
+            permission_classes = [IsAdminUser | IsOwner]
+
+        else:
+            permission_classes = []
+
+        return [permission() for permission in permission_classes]
 
     @action(detail=True, methods=['PATCH'])
     def update_wishlist(self, request, pk=None):
         '''
         Adds or removes a product from the profile wishlist. Requires a
-        key value pair of "action": "remove" or "add" and "product_id": "pk"
-        in the request body
+        key value pair of "command": "remove" or "add" and "product_id": "pk"
+        in the request body.
         '''
 
-        product_id = self.request.data.get('product_id')
+        product_id = self.kwargs['pk']
         product = get_object_or_404(models.Product, pk=product_id)
         profile = self.get_object()
-        action = self.request.data.get('action')
+        command = self.request.data.get('command')
 
-        if action == 'add':
+        if command == 'add':
             profile.wishlist.add(product)
-        elif action == 'remove':
+        elif command == 'remove':
             profile.wishlist.remove(product)
         else:
             return Response(
-                {'detail': '"action" is neither "add" nor "remove" (kwarg)'},
+                {'detail': '"command" is neither "add" nor "remove" (kwarg)'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -108,7 +177,7 @@ class ProfileView(ModelViewSet):
             )
 
 
-class OrderVIew(ModelViewSet):
+class OrderView(ModelViewSet):
     '''
     Displays the Order in a browsable api
     '''
@@ -116,15 +185,44 @@ class OrderVIew(ModelViewSet):
     queryset = models.Order.objects.all()
     serializer_class = serializers.OrderSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = [IoRoOrder, IsAuthenticatedOrReadOnly,]
+
+    def get_queryset(self):
+        '''
+        Excludes non owners from viewing other users orders, except admin.
+        '''
+
+        if self.request.user.is_staff:
+            return super().get_queryset()
+
+        owner_id = self.request.user.id
+        queryset = models.Order.objects.filter(pk=owner_id)
+        return queryset
+
+    def get_permissions(self):
+        '''
+        Implements permission classes for different view actions.
+        '''
+        if self.action == 'list' or self.action == 'retrieve':
+            permission_classes = [IsAdminUser | IsAuthenticated]
+
+        elif self.action == 'create':
+            permission_classes = [IsAdminUser | IsAuthenticated]
+
+        elif self.action == 'update' or\
+                self.action == 'partial_update' or\
+                self.action == 'destroy':
+            permission_classes = [IsAdminUser | IsOwner]
+
+        return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
         '''
-        Checks if request is POST to associate the profile field of the 
-        Order with the profile of the authenticated user
+        Checks if view action is CREATE to associate the customer field of
+        the Order with the authenticated user.
         '''
-        if self.request.method == 'POST':
-            serializer.validated_data['profile'] = self.request.user.profile
+
+        if self.action == 'create':
+            serializer.validated_data['customer'] = self.request.user
 
         return super().perform_create(serializer)
 

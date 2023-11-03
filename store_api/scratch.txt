@@ -1,1 +1,0 @@
-curl -X PATCH -H "Authorization: Token 04691a3435f483a89eb28f1de3dd31e6a2ed930e" -H "Content-Type: application/json" -d '{"action": "remove", "product_id": 1}' http://127.0.0.1:8000/api/update-wishlist/profiles/3/

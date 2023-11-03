@@ -11,7 +11,6 @@ class CustomModelBackend(ModelBackend):
             user model with the corresponding fields of the profile model
             '''
             user.profile.last_login = user.last_login
-            user.profile.date_joined = user.date_joined
             user.profile.save()
 
         return user

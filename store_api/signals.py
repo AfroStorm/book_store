@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from store_api.models import Profile, Order
 from django.dispatch import receiver
-from django.contrib.auth.signals import user_logged_in
 from django.db.models.signals import post_save
 from celery import shared_task
 from time import sleep
@@ -14,7 +13,14 @@ def create_profile(sender, instance, created, **kwargs):
     Creates a profile and saves the user in itś Customer field
     '''
     if created:
-        Profile.objects.create(customer=instance)
+        Profile.objects.create(
+            customer=instance,
+            first_name=instance.first_name,
+            last_name=instance.last_name,
+            email=instance.email,
+            last_login=instance.last_login,
+            date_joined=instance.date_joined
+        )
 
 
 @receiver(post_save, sender=User)
@@ -23,20 +29,6 @@ def save_profile(sender, instance, **kwargs):
     Saves the newly created UserProfile
     '''
     instance.profile.save()
-
-
-# User = get_user_model()
-
-
-# @receiver(user_logged_in, sender=User)
-# def synchronize_profile_on_login(sender, request, user, **kwargs):
-#     '''
-#     Synchronizes the last_login/date_joined fields of the user model with
-#     the corresponding fields of the profile model
-#     '''
-#     user.profile.last_login = user.last_login
-#     user.profile.date_joined = user.date_joined
-#     user.profile.save()
 
 
 @shared_task
