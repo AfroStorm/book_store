@@ -31,47 +31,6 @@ class Category(models.Model):
         return self.name
 
 
-class ProductReviewHistory(models.Model):
-    '''
-    Review history for each product
-    '''
-
-    overall_rating = models.DecimalField(
-        decimal_places=1,
-        max_digits=2,
-        default=0.0,
-        validators=[
-            MaxValueValidator(5.0),
-            MinValueValidator(0.0),
-        ]
-    )
-    sumarized_ratings = models.FloatField(default=0.0)
-    number_of_voters = models.IntegerField(default=0)
-
-    def calculate_rating(self, customer_rating=None):
-        '''
-        Adds a customer rating and calculates the overall rating for a
-        product, limiting it to a maximum of 5.0 and returns it. If no 
-        customer_rating is given it also returns the overall rating of
-        the product.
-        '''
-
-        if customer_rating is not None:
-            self.number_of_voters += 1
-            self.sumarized_ratings += customer_rating
-
-        if self.number_of_voters > 0:
-            overall_rating = (self.sumarized_ratings /
-                              self.number_of_voters) * 5.0
-            return min(round(overall_rating, 1), 5.0)
-        else:
-            # Return 0.0 if there are no voters (to avoid division by zero)
-            return 0.0
-
-    def __str__(self) -> str:
-        return f' {self.product.name} review history'
-
-
 class Product(models.Model):
     '''
     The product in the online shop has different properties depending on its
@@ -89,12 +48,9 @@ class Product(models.Model):
     )
     price = models.FloatField()
     description = models.TextField()
-    tags = models.ManyToManyField(Tag)
-    review_history = models.OneToOneField(
-        ProductReviewHistory,
-        related_name='product',
-        on_delete=models.CASCADE,
-        null=True
+    tags = models.ManyToManyField(
+        Tag,
+        blank=True,
     )
 
     lenght = models.FloatField(null=True, blank=True)
@@ -110,6 +66,51 @@ class Product(models.Model):
         Displays the object as a string.
         '''
         return f'Category: {self.category}\n/ Name: {self.name}'
+
+
+class ProductReviewHistory(models.Model):
+    '''
+    Review history for each product
+    '''
+
+    overall_rating = models.DecimalField(
+        decimal_places=1,
+        max_digits=2,
+        default=0.0,
+        validators=[
+            MaxValueValidator(5.0),
+            MinValueValidator(0.0),
+        ]
+    )
+    sumarized_ratings = models.FloatField(default=0.0)
+    number_of_voters = models.IntegerField(default=0)
+    product = models.OneToOneField(
+        Product,
+        related_name='review_history',
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+
+    def calculate_rating(self, customer_rating):
+        '''
+        Adds a customer rating and calculates the overall rating for a
+        product.
+        '''
+
+        self.number_of_voters += 1
+        self.sumarized_ratings += customer_rating
+
+        if self.number_of_voters > 0:
+            overall_rating = (self.sumarized_ratings /
+                              self.number_of_voters)
+            return overall_rating
+        else:
+            # Return 0.0 if there are no voters (to avoid division by zero)
+            return 0.0
+
+    def __str__(self) -> str:
+        return f'Review History: {self.product.name}'
 
 
 class Profile(models.Model):
@@ -133,6 +134,7 @@ class Profile(models.Model):
     wishlist = models.ManyToManyField(
         Product,
         related_name='wishlist',
+        blank=True
     )
 
     def __str__(self) -> str:

@@ -45,10 +45,10 @@
             Restrict access to sensitive data. #
         Prevent owners from modifying data for which they have no #
             authorization. #
-        Prevent unauthorized and authorized users from being able to set the 
-            date_joined/last_login fields when creating a new user
-            (except staff).
+        Prevent unauthorized and authorized users from being able to set the #
+            date_joined/last_login fields when creating a new user #
+            (except staff) #
     3. Change permissions to corespond acordingly to different views. #
-    4. create signals to create a product review history for
-        each product.
+    4. create signals to create a product review history for #
+        each product. #
     

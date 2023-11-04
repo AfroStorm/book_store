@@ -68,20 +68,23 @@ class UserSerializer(serializers.ModelSerializer):
         request = self.context['request']
         fields = super().get_fields()
 
-        if request.method not in permissions.SAFE_METHODS:
-            if not request.user.is_staff:
-                read_only_fields = ['last_login', 'date_joined', 'profile']
-                for field in read_only_fields:
-                    fields[field].read_only = True
+        if request.user.is_staff:
+            return fields
 
-                return fields
+        elif request.method not in permissions.SAFE_METHODS:
+            read_only_fields = ['last_login', 'date_joined', 'profile']
+            for field in read_only_fields:
+                fields[field].read_only = True
+
+            return fields
 
         return fields
 
     def to_representation(self, instance):
         '''
-        Checks if the request user is the owner. Prevents sensitive
-        information from being displayed to non authorized requests.
+        Checks if the request user is the  owner or admin. Prevents
+        sensitive information from being displayed to non authorized
+        requests.
         '''
 
         request = self.context['request']
@@ -109,6 +112,29 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Profile
         fields = '__all__'
+
+    def get_fields(self):
+        '''
+        Prevents the request user from manually filling out fields that are
+        supposed to be handled by other sources. Except admin.
+        '''
+
+        request = self.context['request']
+        fields = super().get_fields()
+
+        if request.user.is_staff:
+            return fields
+
+        elif request.method == 'PUT' or request.method == 'PATCH':
+            read_only_fields = [
+                'last_login', 'date_joined', 'customer'
+            ]
+            for field in read_only_fields:
+                fields[field].read_only = True
+
+            return fields
+
+        return fields
 
     def update(self, instance, validated_data):
         '''
