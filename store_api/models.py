@@ -192,3 +192,10 @@ class Order(models.Model):
     )
     date_of_ordering = models.DateTimeField(auto_now_add=True)
     is_confirmed = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return (
+            f'Customer: {self.customer.username} - '
+            f'Date of ordering: {self.date_of_ordering} - '
+            f'Payment confirmation: {self.is_confirmed}'
+        )

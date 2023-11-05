@@ -116,7 +116,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     def get_fields(self):
         '''
         Prevents the request user from manually filling out fields that are
-        supposed to be handled by other sources. Except admin.
+        supposed to be handled by other parties like Admin users.
         '''
 
         request = self.context['request']
@@ -135,26 +135,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             return fields
 
         return fields
-
-    def update(self, instance, validated_data):
-        '''
-        Checks if the request user is staff. Prevents the owner from
-        modifying sensitive business relevant data.
-        '''
-
-        request_user = self.context['request'].user
-        if request_user.is_staff or request_user.is_superuser:
-            return super().update(instance, validated_data)
-
-        allowed_fields = [
-            'address', 'first_name', 'last_name', 'email', 'wishlist'
-        ]
-        for field in allowed_fields:
-            if field in validated_data:
-                setattr(instance, field, validated_data[field])
-
-        instance.save()
-        return instance
 
     def to_representation(self, instance):
         '''
@@ -194,6 +174,30 @@ class OrderSerializer(serializers.ModelSerializer):
         model = models.Order
         fields = '__all__'
 
+    def get_fields(self):
+        '''
+        Prevents the request user from manually filling out fields that are
+        supposed to be handled by other parties like Admin users.
+        '''
+        request = self.context['request']
+        fields = super().get_fields()
+        if request.user.is_staff:
+            return fields
+
+        if request.method == 'POST' or\
+                request.method == 'PUT' or\
+                request.method == 'PATCH':
+
+            read_only_fields = [
+                'date_of_ordering', 'is_confirmed', 'customer'
+            ]
+            for field in read_only_fields:
+                fields[field].read_only = True
+
+            return fields
+
+        return fields
+
 
 class ProductReviewHistorySerializer(serializers.ModelSerializer):
     '''
@@ -203,7 +207,6 @@ class ProductReviewHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ProductReviewHistory
         fields = '__all__'
-        read_only_fields = ('__all__',)
 
 
 class CustomerReviewSerializer(serializers.ModelSerializer):
@@ -214,4 +217,26 @@ class CustomerReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.CustomerReview
         fields = '__all__'
-        read_only_fields = ('__all__',)
+
+    def get_fields(self):
+        '''
+        Prevents the request user from manually filling out fields that are
+        supposed to be handled by other parties like Admin users.
+        '''
+
+        request = self.context['request']
+        fields = super().get_fields()
+        if request.user.is_staff:
+            return fields
+
+        if request.method == 'POST' or\
+                request.method == 'PUT' or\
+                request.method == 'PATCH':
+
+            read_only_fields = ['customer', 'review_history']
+            for field in read_only_fields:
+                fields[field].read_only = True
+
+            return fields
+
+        return fields

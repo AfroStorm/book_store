@@ -3,16 +3,15 @@ from rest_framework.viewsets import ModelViewSet
 from store_api import serializers
 from rest_framework.decorators import action
 from store_api import models
-from rest_framework import generics, mixins
 from django.contrib.auth.models import User
-from rest_framework.permissions import IsAdminUser, IsAuthenticated,\
-    IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 from store_api.permissions import IsOwner, IsReadOnly, IsUser
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.settings import api_settings
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 # Create your views here.
 
@@ -26,6 +25,8 @@ class TagView(ModelViewSet):
     serializer_class = serializers.TagSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAdminUser | IsReadOnly]
+    filter_backends = [SearchFilter,]
+    search_fields = ['caption',]
 
 
 class CategoryView(ModelViewSet):
@@ -37,6 +38,8 @@ class CategoryView(ModelViewSet):
     serializer_class = serializers.CategorySerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAdminUser | IsReadOnly]
+    filter_backends = [SearchFilter,]
+    search_fields = ['name',]
 
 
 class ProductView(ModelViewSet):
@@ -48,6 +51,11 @@ class ProductView(ModelViewSet):
     serializer_class = serializers.ProductSerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAdminUser | IsReadOnly]
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['id', 'name', 'description', 'tags', 'author']
+    ordering_fields = [
+        'id', 'category', 'price', 'tags', 'publishing_date', 'author'
+    ]
 
 
 class ProductReviewHistory(ModelViewSet):
@@ -59,6 +67,9 @@ class ProductReviewHistory(ModelViewSet):
     serializer_class = serializers.ProductReviewHistorySerializer
     authentication_classes = (TokenAuthentication,)
     permission_classes = [IsAdminUser | IsReadOnly]
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['id', 'overall_rating', 'product']
+    ordering_fields = ['id', 'overall_rating', 'product']
 
 
 class CustomerReviewView(ModelViewSet):
@@ -69,6 +80,11 @@ class CustomerReviewView(ModelViewSet):
     queryset = models.CustomerReview.objects.all()
     serializer_class = serializers.CustomerReviewSerializer
     authentication_classes = (TokenAuthentication,)
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = [
+        'id', 'rating', 'date', 'customer', 'product'
+    ]
+    ordering_fields = ['id', 'rating', 'customer',]
 
     def get_permissions(self):
         '''
@@ -87,6 +103,17 @@ class CustomerReviewView(ModelViewSet):
 
         return [permission() for permission in permission_classes]
 
+    def perform_create(self, serializer):
+        '''
+        Assign the request user to the customer field. Admin users
+        are excluded from this.
+        '''
+
+        if not self.request.user.is_staff:
+            serializer.validated_data['customer'] = self.request.user
+
+        return super().perform_create(serializer)
+
 
 class UserView(ModelViewSet):
     '''
@@ -96,6 +123,9 @@ class UserView(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     authentication_classes = (TokenAuthentication,)
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['username', 'email', 'date_joined', 'last_login']
+    ordering_fields = ['id', 'username', 'date_joined', 'last_login']
 
     def get_permissions(self):
         '''
@@ -120,6 +150,12 @@ class ProfileView(ModelViewSet):
     queryset = models.Profile.objects.all()
     serializer_class = serializers.ProfileSerializer
     authentication_classes = (TokenAuthentication,)
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['id', 'first_name', 'last_name', 'email', 'customer']
+    ordering_fields = [
+        'id', 'last_login', 'date_joined', 'first_name', 'last_name',
+        'customer'
+    ]
 
     def get_permissions(self):
         '''
@@ -185,6 +221,13 @@ class OrderView(ModelViewSet):
     queryset = models.Order.objects.all()
     serializer_class = serializers.OrderSerializer
     authentication_classes = (TokenAuthentication,)
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = [
+        'id', 'customer', 'products', 'date_of_ordering', 'is_confirmed'
+    ]
+    ordering_fields = [
+        'id', 'customer', 'products', 'date_of_ordering', 'is_confirmed'
+    ]
 
     def get_queryset(self):
         '''
@@ -213,15 +256,18 @@ class OrderView(ModelViewSet):
                 self.action == 'destroy':
             permission_classes = [IsAdminUser | IsOwner]
 
+        else:
+            permission_classes = []
+
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
         '''
-        Checks if view action is CREATE to associate the customer field of
-        the Order with the authenticated user.
+        Assign the request user to the customer field. Admin users
+        are excluded from this.
         '''
 
-        if self.action == 'create':
+        if not self.request.user.is_staff:
             serializer.validated_data['customer'] = self.request.user
 
         return super().perform_create(serializer)
