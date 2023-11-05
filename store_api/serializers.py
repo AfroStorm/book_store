@@ -63,7 +63,7 @@ class UserSerializer(serializers.ModelSerializer):
     def get_fields(self):
         '''
         Prevents the request user from manually filling out fields that are
-        supposed to be handled by other sources. Except admin.
+        supposed to be handled by other parties like Admin users.
         '''
         request = self.context['request']
         fields = super().get_fields()
